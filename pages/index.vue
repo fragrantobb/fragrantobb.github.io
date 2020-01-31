@@ -28,7 +28,13 @@ import AppLogo from '~/components/AppLogo.vue'
 export default {
   components: {
     AppLogo
-  }
+  },
+  mounted() {
+      const arr = [0, 1, 2, 3];
+      arr.forEach(item => {
+          console.log(item);
+      });
+  },
 }
 </script>
 
