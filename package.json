@@ -13,6 +13,10 @@
         "precommit": "npm run lint",
         "deploy": "push-dir --dir=dist --branch=master --cleanup"
     },
+    "browserslist": [
+      "last 2 version",
+      "not ie <= 8"
+    ],
     "dependencies": {
         "nuxt": "^2.0.0"
     },
