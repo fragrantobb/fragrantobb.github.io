@@ -18,6 +18,15 @@
           target="_blank"
           class="button--grey">GitHub</a>
       </div>
+      <ul>
+          <li class="list">a1</li>
+          <li class="list">a2</li>
+          <li class="list">a3</li>
+          <li class="list">a4</li>
+          <li class="list">a5</li>
+          <li class="list">a6</li>
+          <li class="list">a7</li>
+      </ul>
     </div>
   </section>
 </template>
@@ -33,6 +42,11 @@ export default {
       const arr = [0, 1, 2, 3];
       arr.forEach(item => {
           console.log(item);
+      });
+      const lis = document.querySelectorAll('.list');
+      console.dir(lis);
+      lis.forEach(li => {
+          console.dir(li);
       });
   },
 }
