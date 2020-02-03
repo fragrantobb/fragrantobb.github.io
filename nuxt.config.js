@@ -33,7 +33,15 @@ module.exports = {
                     exclude: /(node_modules)/
                 })
             }
-        }
-    }
-}
+        },
+    },
+    buildModules: [
+        '@nuxtjs/vuetify',
+    ],
+    vuetify: {
+        theme: {
+            dark: true,
+        },
+    },
+};
 

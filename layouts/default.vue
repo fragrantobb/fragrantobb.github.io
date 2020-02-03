@@ -1,53 +1,72 @@
 <template>
-  <div>
-    <nuxt/>
-  </div>
+<v-app>
+    <v-navigation-drawer
+        app
+        :expand-on-hover="expandOnHover"
+        right>
+        <v-list
+            dense
+            nav>
+            <v-list-item
+                class="px-0"
+                two-line>
+                <v-list-item-avatar>
+                    <img src="https://randomuser.me/api/portraits/men/81.jpg">
+                </v-list-item-avatar>
+                <v-list-item-content>
+                    <v-list-item-title>
+                        안녕하세요? 환영합니다!
+                    </v-list-item-title>
+                    <v-list-item-subtitle>
+                        fragrantobb
+                    </v-list-item-subtitle>
+                </v-list-item-content>
+            </v-list-item>
+            <v-divider />
+            <v-list-item
+                v-for="(navItem, navIdx) in navList"
+                :key="navIdx"
+                link>
+                <v-list-item-content>
+                    <v-list-item-title>
+                        {{navItem}}
+                    </v-list-item-title>
+                </v-list-item-content>
+            </v-list-item>
+        </v-list>
+    </v-navigation-drawer>
+
+    <v-app-bar app>
+        <v-toolbar-title>fragrantobb의 정적인 열린 공간</v-toolbar-title>
+        <v-btn icon>
+            <v-icon>mdi-heart</v-icon>
+        </v-btn>
+    </v-app-bar>
+
+    <v-content>
+        <v-container fluid>
+            <nuxt />
+        </v-container>
+    </v-content>
+
+    <v-footer app />
+</v-app>
 </template>
 
-<style>
-html {
-  font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 16px;
-  word-spacing: 1px;
-  -ms-text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  box-sizing: border-box;
-}
-
-*, *:before, *:after {
-  box-sizing: border-box;
-  margin: 0;
-}
-
-.button--green {
-  display: inline-block;
-  border-radius: 4px;
-  border: 1px solid #3b8070;
-  color: #3b8070;
-  text-decoration: none;
-  padding: 10px 30px;
-}
-
-.button--green:hover {
-  color: #fff;
-  background-color: #3b8070;
-}
-
-.button--grey {
-  display: inline-block;
-  border-radius: 4px;
-  border: 1px solid #35495e;
-  color: #35495e;
-  text-decoration: none;
-  padding: 10px 30px;
-  margin-left: 15px;
-}
-
-.button--grey:hover {
-  color: #fff;
-  background-color: #35495e;
-}
-</style>
-
+<script>
+export default {
+    theme: {
+        dark: true,
+    },
+    data() {
+        return {
+            navList: [
+                '테스트1',
+                '테스트2',
+                '테스트3',
+            ],
+            expandOnHover: true,
+        };
+    },
+};
+</script>
