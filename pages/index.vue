@@ -39,15 +39,14 @@ export default {
     AppLogo
   },
   mounted() {
-      const arr = [0, 1, 2, 3];
-      arr.forEach(item => {
-          console.log(item);
-      });
-      const lis = document.querySelectorAll('.list');
-      console.dir(lis);
-      lis.forEach(li => {
-          console.dir(li);
-      });
+      const li = document.querySelectorAll('.list');
+      const arrowFunc = (nodeList) => {
+          console.log(nodeList);
+          nodeList.forEach(node => {
+            console.dir(node);
+        });
+      };
+      arrowFunc();
   },
 }
 </script>
