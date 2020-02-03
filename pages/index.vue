@@ -43,10 +43,10 @@ export default {
       const arrowFunc = (nodeList) => {
           console.log(nodeList);
           nodeList.forEach(node => {
-            console.dir(node);
-        });
+              console.dir(node);
+          });
       };
-      arrowFunc();
+      arrowFunc(li);
   },
 }
 </script>
