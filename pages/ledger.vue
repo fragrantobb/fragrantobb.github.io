@@ -57,16 +57,16 @@
                         >
                             <td
                                 v-for="date in week"
-                                :key="date"
+                                :key="date.id"
                             >
-                                <p>{{ date }}</p>
+                                <p>{{ date.value }}</p>
                                 <ul>
                                     <li></li>
                                 </ul>
                                 <button
-                                    v-if="date"
+                                    v-if="date.value"
                                     type="button"
-                                    @click="toggleSubmitModal(true, date)"
+                                    @click="toggleSubmitModal(true)"
                                 >등록</button>
                             </td>
                         </tr>
@@ -84,10 +84,15 @@
                     <tbody>
                         <tr>
                             <td
-                                v-for="(item, idx) in weekCalendarItemList"
-                                :key="idx"
+                                v-for="item in weekCalendarItemList"
+                                :key="item.id"
                             >
-                                <p>{{ item }}</p>
+                                <p>{{ item.value }}</p>
+                                <button
+                                    v-if="item.value"
+                                    type="button"
+                                    @click="toggleSubmitModal(true)"
+                                >등록</button>
                             </td>
                         </tr>
                     </tbody>
@@ -220,17 +225,17 @@ export default {
                     const tempDateObj = new Date(currMillis.value);
                     tempDateObj.setDate(0);
                     for (let cnt = day - 1; cnt >= 0; cnt--) {
-                        week.unshift(tempDateObj.getDate());
+                        week.unshift({ id: tempDateObj.toLocaleDateString(), value: tempDateObj.getDate() });
                         tempDateObj.setDate(tempDateObj.getDate() - 1);
                     }
                 }
-                week.push(firstDate.getDate());
+                week.push({ id: firstDate.toLocaleDateString(), value: firstDate.getDate() });
                 if (day !== 6 && date === lastDate.getDate()) {
                     const tempDateObj = new Date(currMillis.value);
                     tempDateObj.setMonth(tempDateObj.getMonth());
                     tempDateObj.setDate(1);
                     for (let cnt = day; cnt < 6; cnt++) {
-                        week.push(tempDateObj.getDate());
+                        week.push({ id: tempDateObj.toLocaleDateString(), value: tempDateObj.getDate() });
                         tempDateObj.setDate(tempDateObj.getDate() + 1);
                     }
                     weekList.push(week);
@@ -340,7 +345,7 @@ export default {
         const toMonth = targetMonth => {
             const targetDate = new Date(currMillis.value);
             targetDate.setFullYear(currYear.value);
-            targetDate.setMonth(targetMonth - 1)
+            targetDate.setMonth(targetMonth - 1);
             currMillis.value = targetDate.getTime();
             calendarType.value = 'dateList';
         };
@@ -358,8 +363,12 @@ export default {
         };
 
         const weekCalendarItemList = computed(() => {
-            const currDate = new Date(currMillis.value).getDate();
-            const currWeek = currWeekList.value.filter((week, idx) => week.some(date => date === currDate))[0];
+            const millis = new Date(currMillis.value).toLocaleDateString();
+            const currWeek = currWeekList.value.filter(week => week.some(({ id }) => {
+                console.log(id, millis);
+                return id === millis;
+            }))[0];
+            
             return currWeek;
         });
 
