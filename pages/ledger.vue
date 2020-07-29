@@ -3,7 +3,7 @@
         <p>{{ currYear }} 년 / {{ currMonth }} 월</p>
         <div>
             <button
-                @click="keyArrow('left')"
+                @click="horizontalArrow(true)"
                 type="button"
             ><</button>
             <div>
@@ -18,7 +18,7 @@
                                 :key="item"
                             >
                                 <button
-                                    @click="toYear(item)"
+                                    @click="toMonthList(item)"
                                     type="button">{{ item }}</button>
                             </td>
                         </tr>
@@ -35,7 +35,7 @@
                                 :key="item"
                             >
                                 <button
-                                    @click="toMonth(item)"
+                                    @click="toMonthlyDateList(item)"
                                     type="button">{{ item }}</button>
                             </td>
                         </tr>
@@ -119,38 +119,38 @@
                 </table>
             </div>
             <button
-                @click="keyArrow('right')"
+                @click="horizontalArrow"
                 type="button"
             >></button>
         </div>
         <ul>
             <li>
                 <button
-                    @click="toToday"
+                    @click="toYearList"
                     type="button"
                 >연 목록</button>
             </li>
             <li>
                 <button
-                    @click="toToday"
+                    @click="toMonthList"
                     type="button"
                 >연</button>
             </li>
             <li>
                 <button
-                    @click="toToday"
+                    @click="toMonthlyDateList"
                     type="button"
                 >월</button>
             </li>
             <li>
                 <button
-                    @click="toToday"
+                    @click="toWeeklyDateList"
                     type="button"
                 >주</button>
             </li>
             <li>
                 <button
-                    @click="toToday"
+                    @click="toDateDetail"
                     type="button"
                 >오늘</button>
             </li>
@@ -174,6 +174,11 @@ export default {
     name: 'Ledger',
     components: { Modal, InsertLedger },
     setup(props, { attrs, emit, isServer, listeners, parent, refs, root, slots, ssrContext }) {
+        const toPureDate = dateObj => {
+            dateObj.setHours(0);
+            dateObj.setMinutes(0);
+            dateObj.setSeconds(0);
+        };
         const query = root.$route.query;
         const calendarTypeList = ['yearList', 'monthList', 'monthlyDateList', 'weeklyDateList', 'dateDetail'];
         const calendarType = ref(null);
@@ -182,9 +187,7 @@ export default {
             if (query.time) {
                 now.setTime(query.time);
             }
-            now.setHours(0);
-            now.setMinutes(0);
-            now.setSeconds(0);
+            toPureDate(now);
             return now.getTime();
         })());
         const commitData = changes => {
@@ -207,15 +210,11 @@ export default {
                 commitData({ type: 'monthlyDateList' });
             }
         })();
-        const currYear = computed(() => {
-            return new Date(currMillis.value).getFullYear();
-        });
-        const currMonth = computed(() => {
-            return new Date(currMillis.value).getMonth() + 1;
-        });
-        const currDate = computed(() => {
-            return new Date(currMillis.value).getDate();
-        });
+        const typeMaxLevel = calendarTypeList.length - 1;
+        const typeLevel = computed(() => calendarTypeList.indexOf(calendarType.value));
+        const currYear = computed(() => new Date(currMillis.value).getFullYear());
+        const currMonth = computed(() => new Date(currMillis.value).getMonth() + 1);
+        const currDate = computed(() => new Date(currMillis.value).getDate());
         const currYearBundleList = computed(() => {
             const yearBundleList = [];
             let yearBundle = [];
@@ -279,77 +278,51 @@ export default {
             return currDayList[parsedDay];
         });
         const keyEvent = () => {
-            const keyArrow = key => {
-                const currDateObj = new Date(currMillis.value);
-                let type = null;
+            const horizontalArrow = isLeft => {
+                const targetDateObj = new Date(currMillis.value);
                 if (calendarType.value === 'yearList') {
-                    if (key === 'left') {
-                        currDateObj.setFullYear(currDateObj.getFullYear() - 12);
-                    } else if (key === 'right') {
-                        currDateObj.setFullYear(currDateObj.getFullYear() + 12);
-                    } else if (key === 'down') {
-                        type = 'monthList';
-                    }
+                    targetDateObj.setFullYear(targetDateObj.getFullYear() + (isLeft ? -12 : 12));
                 } else if (calendarType.value === 'monthList') {
-                    if (key === 'left') {
-                        currDateObj.setFullYear(currDateObj.getFullYear() - 1);
-                    } else if (key === 'right') {
-                        currDateObj.setFullYear(currDateObj.getFullYear() + 1);
-                    } else if (key === 'up') {
-                        type = 'yearList';
-                    } else if (key === 'down') {
-                        type = 'monthlyDateList';
-                    }
+                    targetDateObj.setFullYear(targetDateObj.getFullYear() + (isLeft ? -1 : 1));
                 } else if (calendarType.value === 'monthlyDateList') {
-                    if (key === 'left') {
-                        if (currMonth.value < 2) {
-                            currDateObj.setFullYear(currDateObj.getFullYear() - 1);
-                            currDateObj.setMonth(11);
-                        } else {
-                            currDateObj.setMonth(currDateObj.getMonth() - 1);
-                        }
-                    } else if (key === 'right') {
-                        if (currMonth.value === 12) {
-                            currDateObj.setFullYear(currDateObj.getFullYear() + 1);
-                            currDateObj.setMonth(0);
-                        } else {
-                            currDateObj.setMonth(currDateObj.getMonth() + 1);
-                        }
-                    } else if (key === 'up') {
-                        type = 'monthList';
-                    } else if (key === 'down') {
-                        type = 'weeklyDateList';
+                    if (isLeft ? (currMonth.value < 2) : (currMonth.value === 12)) {
+                        targetDateObj.setFullYear(targetDateObj.getFullYear() + (isLeft ? -1 : 1));
+                        targetDateObj.setMonth(isLeft ? 11 : 0);
+                    } else {
+                        targetDateObj.setMonth(targetDateObj.getMonth() + (isLeft ? -1 : 1));
+                    }
+                    const currDateObj = new Date(currMillis.value);
+                    if (targetDateObj.getDate() !== currDateObj.getDate()) {
+                        targetDateObj.setDate(1);
+                        targetDateObj.setMonth(currDateObj.getMonth() + (isLeft ? 0 : 2));
+                        targetDateObj.setDate(0);
+                        
                     }
                 } else if (calendarType.value === 'weeklyDateList') {
-                    if (key === 'left') {
-                        currDateObj.setDate(currDateObj.getDate() - 7);
-                    } else if (key === 'right') {
-                        currDateObj.setDate(currDateObj.getDate() + 7);
-                    } else if (key === 'up') {
-                        type = 'monthlyDateList';
-                    } else if (key === 'down') {
-                        type = 'dateDetail';
-                    }
+                    targetDateObj.setDate(targetDateObj.getDate() + (isLeft ? -7 : 7));
                 } else if (calendarType.value === 'dateDetail') {
-                    if (key === 'left') {
-                        currDateObj.setDate(currDateObj.getDate() - 1);
-                    } else if (key === 'right') {
-                        currDateObj.setDate(currDateObj.getDate() + 1);
-                    } else if (key === 'up') {
-                        type = 'weeklyDateList';
-                    } else if (key === 'down') {
-                        type = 'dateDetail';
-                    }
+                    targetDateObj.setDate(targetDateObj.getDate() + (isLeft ? -1 : 1));
                 }
-                const commitObj = { time: currDateObj.getTime() };
-                if (type) commitObj.type = type;
-                commitData(commitObj);
+                commitData({ time: targetDateObj.getTime() });
             };
             const cb = e => {
                 const key = e.key;
-                if (key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown') {
-                    e.preventDefault();
-                    keyArrow(key.replace('Arrow', '').toLowerCase());
+                switch (key) {
+                    case 'ArrowLeft':
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        horizontalArrow(key === 'ArrowLeft');
+                        break;
+                    case 'ArrowUp':
+                        if (typeLevel.value === 0) return;
+                        e.preventDefault();
+                        commitData({ type: calendarTypeList[typeLevel.value - 1] });
+                        break;
+                    case 'ArrowDown':
+                        if (typeLevel.value === typeMaxLevel) return;
+                        e.preventDefault();
+                        commitData({ type: calendarTypeList[typeLevel.value + 1] });
+                        break;
                 }
             };
             const setArrowKeyEvent = () => {
@@ -360,25 +333,38 @@ export default {
                 if (!document) return false;
                 document.removeEventListener('keydown', cb);
             };
-            return { setArrowKeyEvent, removeKeyEvent, keyArrow };
+            return { setArrowKeyEvent, removeKeyEvent, horizontalArrow };
         };
-        const { setArrowKeyEvent, removeKeyEvent, keyArrow } = keyEvent(root);
+        const { setArrowKeyEvent, removeKeyEvent, horizontalArrow } = keyEvent();
         const activeModal = ref(false);
         const toggleSubmitModal = (bool, dateStr) => {
             const millisStr = !bool || `${new Date(dateStr).getTime()}`;
             activeModal.value = bool;
         };
-        const toToday = () => {
-            commitData({ time: new Date().getTime(), type: 'monthlyDateList' });
+        const toYearList = () => {
+            commitData({ type: 'yearList' });
         };
-        const toMonth = targetMonth => {
-            const targetDate = new Date(currMillis.value);
-            targetDate.setFullYear(currYear.value);
-            targetDate.setMonth(targetMonth - 1);
-            commitData({ time: targetDate.getTime(), type: 'monthlyDateList' });
+        const toMonthList = targetYear => {
+            const commitObj = { type: 'monthList' };
+            if (typeof targetYear === 'number') {
+                commitObj.time = new Date(currMillis.value).setFullYear(targetYear);
+            }
+            commitData(commitObj);
         };
-        const toYear = targetYear => {
-            commitData({ time: new Date(currMillis.value).setFullYear(targetYear), type: 'monthList' });
+        const toMonthlyDateList = targetMonth => {
+            const commitObj = { type: 'monthlyDateList' };
+            if (typeof targetMonth === 'number') {
+                commitObj.time = new Date(currMillis.value).setMonth(targetMonth - 1);
+            }
+            commitData(commitObj);
+        };
+        const toWeeklyDateList = () => {
+            commitData({ type: 'weeklyDateList' });
+        };
+        const toDateDetail = () => {
+            const newDate = new Date();
+            toPureDate(newDate);
+            commitData({ time: newDate.getTime(), type: 'dateDetail' });
         };
 
         onMounted(() => {
@@ -389,7 +375,27 @@ export default {
             removeKeyEvent();
         });
 
-        return { calendarType, currMillis, currYear, currMonth, currDayList, currWeekList, keyArrow, activeModal, toggleSubmitModal, toToday, currMonthBundleList, toMonth, currYearBundleList, toYear, weekCalendarItemList, currDate, currDay };
+        return {
+            calendarType,
+            currMillis,
+            currYear,
+            currMonth,
+            currDayList,
+            currWeekList,
+            horizontalArrow,
+            activeModal,
+            toggleSubmitModal,
+            toDateDetail,
+            currMonthBundleList,
+            currYearBundleList,
+            weekCalendarItemList,
+            currDate,
+            currDay,
+            toYearList,
+            toMonthList,
+            toMonthlyDateList,
+            toWeeklyDateList,
+        };
     },
 };
 </script>
